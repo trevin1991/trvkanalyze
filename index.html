@@ -7,7 +7,7 @@
 <body>
 <div>
     <button id="getUsersBtn">Get VK users</button>
-    <input type="file" id="uploadCSV" name="files">
+    <input type="file" id="uploadCSV" name="files" multiple>
     <button id="compareBtn">Compare!!!</button>
 </div>
 <div style="float: left; width: 30%;">
@@ -16,123 +16,15 @@
 </div>
 <div style="float: left; width: 30%;">
     <h1>From CSV <span id="csvCntNode"></span></h1>
-    <div id="csvUsersList"></div>
+    <div id="csvList"></div>
 </div>
 <div style="float: left; width: 30%;">
     <h1>Result <span id="resCntNode"></span></h1>
-    <div id="resUsersList"></div>
+    <div id="resList"></div>
 </div>
 
 <script src="https://vk.com/js/api/openapi.js?136" type="text/javascript"></script>
 <script src="src/js/vendor/papaparse.min.js"></script>
-<script>
-    const APP_ID = ""; // put your app_id here
-    const P_KEY = ""; // put your private key here
-    VK.init({
-        apiId: APP_ID
-    });
-
-    VK.Auth.login(startApp);
-
-    function startApp(uData) {
-        let vkUsers = [],
-            csvUsers = [];
-
-        document.getElementById("getUsersBtn").addEventListener("click", getVKUsers);
-        document.getElementById("uploadCSV").addEventListener("change", uploadCSV);
-        document.getElementById("compareBtn").addEventListener("click", compareUsers);
-
-        function compareUsers() {
-            let resUsersListNode = document.getElementById("resUsersList"),
-                resArr = [];
-
-            csvUsers.forEach(csvUserId => {
-                if(vkUsers.indexOf(csvUserId) === -1)
-                    resArr.push(csvUserId);
-            });
-
-            console.log(resArr.length);
-            console.log(csvUsers.length);
-            let pct = Math.round((resArr.length / csvUsers.length) * 100);
-            document.getElementById("resCntNode").innerHTML = `(${resArr.length} - ${pct}%)`;
-            resArr.forEach(userId => {
-                let el = document.createElement("div");
-                el.appendChild(document.createTextNode(userId))
-                resUsersListNode.appendChild(el);
-            });
-        }
-
-        function uploadCSV(evt) {
-            // generate a new FileReader object
-            let reader = new FileReader(),
-                csvUsersListNode = document.getElementById("csvUsersList");
-            reader.readAsBinaryString(this.files[0]);
-
-            // inject an image with the src url
-            reader.onload = function(event) {
-                let res = Papa.parse(event.target.result);
-                if(res.data && res.data.length) {
-                    res.data.forEach((link) => {
-                        if(link[2]) {
-                            let id = +link[2].split("id")[1];
-                            if(id)
-                                csvUsers.push(id);
-                        }
-                    });
-
-                    document.getElementById("csvCntNode").innerHTML = `(${csvUsers.length})`;
-                    //console.log(csvUsers);
-                    csvUsers.forEach(userId => {
-                        let el = document.createElement("div");
-                        el.appendChild(document.createTextNode(userId))
-                        csvUsersListNode.appendChild(el);
-                    });
-                }
-            }
-        }
-
-        function getVKUsers() {
-            let count = 1000,
-                usersListNode = document.getElementById("usersList");
-
-            VK.api("groups.getMembers",
-                    {
-                        group_id: "72264719",
-                        sort: "id_asc",
-                        offset: 0,
-                        count: count
-                    },
-                    mData => {
-                vkUsers.push(...mData.response.users);
-            mData.response.users.forEach(userId => {
-                let el = document.createElement("div");
-            el.appendChild(document.createTextNode(userId))
-            usersListNode.appendChild(el);
-        });
-            for(let i = 1; i <= Math.floor(mData.response.count / count); i++) {
-                VK.api("groups.getMembers",
-                        {
-                            group_id: "72264719",
-                            sort: "id_asc",
-                            offset: 1000 * i,
-                            count: 1000
-                        },
-                        mData => {
-                    vkUsers.push(...mData.response.users);
-                mData.response.users.forEach(userId => {
-                    let el = document.createElement("div");
-                el.appendChild(document.createTextNode(userId))
-                usersListNode.appendChild(el);
-            });
-
-                document.getElementById("vkCntNode").innerHTML = `(${vkUsers.length})`;
-                //console.log(vkUsers);
-            });
-            }
-        });
-
-        }
-    }
-</script>
+<script src="src/js/app.js"></script>
 </body>
 </html>
